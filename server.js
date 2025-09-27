@@ -1,40 +1,55 @@
-// server.js
-//  Point d’entrée du serveur Express
-
 const express = require('express');
-const { MongoClient } = require('mongodb');
-const dotenv = require('dotenv');
+const cors = require('cors');
+require('dotenv').config();
 
-dotenv.config(); // Charge le fichier .env
+const { connectDB } = require('./db/connect');
+const contactsRoutes = require('./routes/contacts');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware pour lire du JSON
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-// Connexion MongoDB
-let db;
-MongoClient.connect(process.env.MONGODB_URI)
-  .then(client => {
-    console.log(' Connecté à MongoDB Atlas');
-    db = client.db(); // On prend la DB définie dans l’URI
-  })
-  .catch(err => console.error(err));
-
 // Routes
-const contactsRoutes = require('./routes/contacts');
-app.use('/contacts', (req, res, next) => {
-  req.db = db; // On passe la db dans la requête pour les routes
-  next();
-}, contactsRoutes);
-
-// Route test
 app.get('/', (req, res) => {
-  res.send('Hello World  - Contacts API');
+    res.json({
+        message: 'Welcome to Contacts API',
+        version: '1.0.0',
+        endpoints: {
+            getAllContacts: 'GET /contacts',
+            getContactById: 'GET /contacts/:id'
+        }
+    });
 });
 
-// Lancement serveur
-app.listen(port, () => {
-  console.log(` Serveur en cours sur http://localhost:${port}`);
+app.use('/contacts', contactsRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ 
+        error: 'Something went wrong!',
+        message: err.message 
+    });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+    res.status(404).json({ 
+        error: 'Route not found',
+        message: `Cannot ${req.method} ${req.originalUrl}` 
+    });
+});
+
+// Connect to MongoDB and start server
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+        console.log(`Visit: http://localhost:${PORT}`);
+    });
+}).catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
 });

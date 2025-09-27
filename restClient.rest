@@ -1,5 +1,0 @@
-### GET all contacts
-GET http://localhost:3000/contacts
-
-### GET one contact
-GET http://localhost:3000/contacts/ID_DU_CONTACT

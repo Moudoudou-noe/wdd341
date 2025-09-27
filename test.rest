@@ -1,0 +1,16 @@
+### Test the API endpoints
+
+### Get all contacts
+GET http://localhost:3000/contacts
+
+### Get contact by ID (replace with actual ID from database)
+GET http://localhost:3000/contacts/507f1f77bcf86cd799439011
+
+### Test root endpoint
+GET http://localhost:3000/
+
+### Test invalid endpoint (should return 404)
+GET http://localhost:3000/invalid
+
+### Test invalid contact ID
+GET http://localhost:3000/contacts/invalid-id
